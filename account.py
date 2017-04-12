@@ -13,7 +13,7 @@ def handle_packet(client,packet):
     payload = packet.data
     if payload["type"] == "login":
         if client.account:
-            packet = Packet.account({
+            packet = Packet("account",{
                 "type":"result",
                 "action":"login",
                 "result":False,
@@ -25,7 +25,7 @@ def handle_packet(client,packet):
         if acc in accounts:
             if accounts[acc]["password"] == payload["password"]:
                 client.account = acc
-                packet = Packet.account({
+                packet = Packet("account",{
                     "type":"result",
                     "action":"login",
                     "account":payload["account"],
@@ -34,7 +34,7 @@ def handle_packet(client,packet):
                 packet.send(client.socket)
                 return
             else:
-                packet = Packet.account({
+                packet = Packet("account",{
                     "type":"result",
                     "action":"login",
                     "result":False,
@@ -43,7 +43,7 @@ def handle_packet(client,packet):
                 packet.send(client.socket)
                 return
         else:
-            packet = Packet.account({
+            packet = Packet("account",{
                 "type":"result",
                 "action":"login",
                 "result":False,
@@ -56,7 +56,7 @@ def handle_packet(client,packet):
     if payload["type"] == "register":
         acc = payload["account"]
         if acc in accounts:
-            packet = Packet.account({
+            packet = Packet("account",{
                 "type":"result",
                 "action":"register",
                 "result":False,
@@ -65,7 +65,7 @@ def handle_packet(client,packet):
             packet.send(client.socket)
             return
         if not re.match("[a-zA-Z0-9_\-]", payload["account"]):
-            packet = Packet.account({
+            packet = Packet("account",{
                 "type":"result",
                 "action":"register",
                 "result":False,
@@ -74,7 +74,7 @@ def handle_packet(client,packet):
             packet.send(client.socket)
             return
         register(payload["account"], payload["password"])
-        packet = Packet.account({
+        packet = Packet("account",{
             "type":"result",
             "action":"register",
             "account":payload["account"],
