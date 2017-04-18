@@ -95,7 +95,7 @@ def save_accounts():
         save_account(acc)
 
 def load_account(account, clear=False):
-    if not os.exists(f"{accounts_dir}/{account}"):
+    if not os.path.exists(f"{accounts_dir}/{account}"):
         return False
 
     with open(f"{accounts_dir}/{account}") as f:
