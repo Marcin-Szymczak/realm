@@ -51,10 +51,10 @@ class Packet:
         return f"{self.group} {self.data}"
 
     def from_bytes(data):
-        packet = Packet()
-        packet.group = Packet.msg_group[ data[0]]
-        packet.data = json.loads(data[1:].decode(), encoding='utf-8')
-        return packet
+
+        group = Packet.msg_group[ data[0]]
+        data = json.loads(data[1:].decode(), encoding='utf-8')
+        return Packet(group,data)
 
     def to_bytes(self):
         data = bytearray()

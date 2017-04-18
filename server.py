@@ -47,9 +47,9 @@ class Client:
 
     def handle_packet(self,packet):
         try:
-            if packet.type == "account":
+            if packet.group == "account":
                 account.handle_packet(self,packet)
-            elif packet.type == "game":
+            elif packet.group == "game":
                 game.handle_packet(self, packet)
         except Exception as e:
            print( traceback.format_exc() )
@@ -122,7 +122,7 @@ class Server:
                     client.receive_queue.put(packet)
                     #print(packet)
                 except Exception as e:
-                    print(f"Invalid packet {message}")
+                    print(f"Invalid packet {message} {e}")
 
             if write:
                 while not client.send_queue.empty():
