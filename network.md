@@ -152,11 +152,13 @@ player = {
   "x": x,
   "y': y,
   "name": imie
+  "id": id
 }
 ```
 + *x* Pozycja x'owa gracza (kolumna, w której się znajduje).
 + *y* Pozycja y'owa gracza (wiersz, w którym się znajduje).
 + *name* Imię gracza, narazie jest to jego login.
++ *id* To unikalny numer identyfikujący gracza.
 
 ### Poruszanie się postacią
 ```python
