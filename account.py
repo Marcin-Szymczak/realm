@@ -59,6 +59,7 @@ def handle_packet(client,packet):
             packet = Packet("account",{
                 "type":"result",
                 "action":"register",
+                "account":payload["account"],
                 "result":False,
                 "description":f"{acc} already exists."
             })
@@ -68,6 +69,7 @@ def handle_packet(client,packet):
             packet = Packet("account",{
                 "type":"result",
                 "action":"register",
+                "account":payload["account"],
                 "result":False,
                 "description":f"Account can contain only letters, numbers and a dash."
             })
@@ -86,19 +88,20 @@ def save_account(account):
     if account in accounts:
         if not os.path.exists(accounts_dir):
             os.mkdir(accounts_dir)
-
-        with open(f"{accounts_dir}/{account}.account", 'w') as f:
+        filename = f"{accounts_dir}/{account}.account"
+        with open(filename, 'w') as f:
            f.write(json.dumps(accounts[account]))
-
 def save_accounts():
     for acc in accounts:
         save_account(acc)
+        print(f"Account {acc} saved")
 
 def load_account(account, clear=False):
-    if not os.path.exists(f"{accounts_dir}/{account}"):
+    filename = f"{accounts_dir}/{account}.account"
+    if not os.path.exists(filename):
         return False
 
-    with open(f"{accounts_dir}/{account}") as f:
+    with open(filename) as f:
         try:
             data = json.loads(f.read(-1))
         except:
@@ -110,11 +113,14 @@ def load_account(account, clear=False):
 def load_accounts():
     if not os.path.exists(f"{accounts_dir}"):
         return
+
     for entry in os.scandir(f"{accounts_dir}/"):
         match = re.match("(.*)\.account", entry.name)
         if match and entry.is_file():
-            if load_account(match[1]):
-                print(f"Account {match[1]} loaded!")
+            acc = match.group(1)
+            print(acc)
+            if load_account(acc):
+                print(f"Account {acc} loaded!")
 
 
 def register(login,password):

@@ -1,3 +1,4 @@
+import globals
 import queue
 import select
 import socket
@@ -7,10 +8,9 @@ import account
 import game
 import traceback
 import sys
+from player import Player
 
 from shared.network import Packet
-
-server = None
 
 class Client:
     STATE_CONNECTING = 0
@@ -24,6 +24,8 @@ class Client:
         self.id = id
 
         self.account = None
+
+        self.player = Player()
 
         self.send_queue = queue.Queue()
         self.receive_queue = queue.Queue()
@@ -157,14 +159,14 @@ class Server:
         self.thread.start()
 
 if __name__ == "__main__":
-    server = Server(ip="localhost",port=50000)
+    globals.server = Server(ip="localhost",port=50000)
+    server = globals.server
     server.set_max_clients(4096)
     server.start()
 
     while True:
         command = input(f"{server.get_hostname()}$ ")
         parts = command.split(' ',maxsplit=2)
-
         if command == "quit":
             server.queue.put("quit")
             break

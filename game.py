@@ -1,5 +1,5 @@
+import globals
 from shared import world
-from server import server
 from shared.network import Packet
 worlds = {}
 
@@ -17,7 +17,28 @@ def handle_packet(client, packet):
             packet = Packet("game",{
                 "type":"chat",
                 "channel":"global",
-                "message":data["message"]
+                "message":data["message"],
+                "player_id":client.id,
             })
-            for client in server.clients:
+            for client in globals.server.clients:
                packet.send(client)
+
+    if data["type"] == "player_list_request":
+        player_list = ()
+        for client in globals.server.clients:
+
+            pl = {
+                "name": client.account,
+                "x": client.player.x,
+                "y": client.player.y,
+                "id": client.id,
+            }
+
+            player_list.append(pl)
+
+        packet = Packet("game",{
+            "type":"player_list",
+            "players":player_list,
+        })
+
+        client.send(packet)
