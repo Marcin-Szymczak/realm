@@ -40,14 +40,14 @@ Server na takie zapytanie odpowiada pakietem oczywiście z grupy **account** sk�
 #"description":msg - opcjonalne
 }
 ```
-+ *nazwa_konta* to wysłana uprzednio nazwa konta do zalogowania
++ *nazwa_konta* to wysłana uprzednio nazwa konta do zalogowania.
 + *rezultat* to wartość Boolowska True albo False, gdzie True oznacza poprawne zalogowanie się, a False błąd w logowaniu.
 
 W razie wystąpienia błędu w logowaniu pojawia się dodatkowe pole:
 ```python
 "description":msg
 ```
-+ *msg* to zdanie opisujące przyczynę nieudania się próby zalogowania, np. Błędne hasło, konto nie istnieje, jesteś już zalogowany
++ *msg* to zdanie opisujące przyczynę nieudania się próby zalogowania, np. Błędne hasło, konto nie istnieje, jesteś już zalogowany.
 
 #### Rejestracja
 Rejestracja przebiega analogicznie do logowania, zmienia się tylko typ w danych pakietu.
@@ -58,10 +58,10 @@ Rejestracja przebiega analogicznie do logowania, zmienia się tylko typ w danyc
 "password": haslo
 }
 ```
-+ *nazwa_konta* to wybrany login składający się z dużych lub małych liter, dopuszczone również są myślniki
++ *nazwa_konta* to wybrany login składający się z dużych lub małych liter, dopuszczone również są myślniki.
 + *haslo* wybrane haslo do konta. **UWAGA!!!*** Wysyłane hasłą nie są w _ŻADEN_ sposób szyfrowane, miejcie to na uwadze zakładając własne konta!
 
-Na tak spraperowany pakiet server odpowiada również rezultatem
+Na tak spraperowany pakiet server odpowiada również rezultatem.
 
 ```python
 {
@@ -73,8 +73,8 @@ Na tak spraperowany pakiet server odpowiada również rezultatem
 }
 ```
 
-+ *nazwa_konta* To wybrany login
-+ *rezultat* True - Rejestracja powiodła się, False - rejestracja zakończyła się niepowodzeniem, w takim wypadku pojawi się również pole "description"
++ *nazwa_konta* To wybrany login.
++ *rezultat* True - Rejestracja powiodła się, False - rejestracja zakończyła się niepowodzeniem, w takim wypadku pojawi się również pole "description".
 + *msg* Wiadomość informująca o przyczynie niepowodzenia, np. Login jest już zajęty.
 
 ## Grupa **game**
@@ -89,7 +89,7 @@ Pakiety z grupy game tyczą się świata gry.
 }
 ```
 + *kanal* Kanał czatu, na który wysyłamy wiadomość, obecnie istnieje tylko "global", jednak w przyszłości będzie więcej kanałów umożliwiających np rozmawianie z graczami w pobliżu.
-+ *wiadomosc* Wiadomość do przesłania
++ *wiadomosc* Wiadomość do przesłania.
 
 Na, który to dostaniemy my jak i reszta graczy odpowiedź:
 ```python
@@ -100,14 +100,14 @@ Na, który to dostaniemy my jak i reszta graczy odpowiedź:
 "player_id": id,
 }
 ```
-+ *kanal* Kanał, na który gracz wysłał wiadomość
-+ *wiadomosc* Treść wiadomości wysłanej przez gracza
-+ *id* Id gracza, który przesłał wiadomość (aby powiązać nick i id należy uprzednio odpytać server o listę graczy)
++ *kanal* Kanał, na który gracz wysłał wiadomość.
++ *wiadomosc* Treść wiadomości wysłanej przez gracza.
++ *id* Id gracza, który przesłał wiadomość (aby powiązać nick i id należy uprzednio odpytać server o listę graczy).
 
 ### Pobranie zawartości mapy (Do zaimplementowania)
-Mapa w grze to dwuwymiarowa lista liczb, w tym momencie obsługiwane są tylko wartości
-+ 0 - w tym miejscu znajduje się podłoga
-+ 1 - w tym miejscu znajduje się ściana
+Mapa w grze to dwuwymiarowa lista liczb, w tym momencie obsługiwane są tylko wartości.
++ 0 - w tym miejscu znajduje się podłoga.
++ 1 - w tym miejscu znajduje się ściana.
 
 ```python
 {
@@ -124,11 +124,11 @@ Na taki pakiet otrzymamy odpowiedź.
 }
 ```
 
-+ *dane* to lista liczb o długości szerokosc*wysokosc, aby dostać się do poszczególnej komórki o współrzędnych (x,y) można posłużyć się prostym wzorem: komórka = dane[x+y*szerokosc]
++ *dane* to lista liczb o długości szerokosc\*wysokosc, aby dostać się do poszczególnej komórki o współrzędnych (x,y) można posłużyć się prostym wzorem: komórka = dane[x+y*szerokosc].
 
 Server w przypadku zmian planszy samoczynnie wyśle nam nową wersje planszy.
 
-### Pobranie listy graczy i ich postaci (Do zaimplementowania)
+### Pobranie listy graczy i ich postaci
 Aby poprawnie wyświetlić planszę gry należy również przedstawić graczy i ich miejsce występowania, w tym celu należy odpytać server o aktualną listę graczy.
 
 ```python
@@ -146,10 +146,27 @@ Otrzymamy odpowiedź
 }
 ```
 
-+ *lista_graczy* Pythonowa lista składająca się ze słowników, każdy "gracz" jest opisany w następujący sposób
++ *lista_graczy* Pythonowa lista składająca się ze słowników, każdy "gracz" jest opisany w następujący sposób.
 ```python
 player = {
-
+  "x": x,
+  "y': y,
+  "name": imie
 }
 ```
-DO ZAIMPLEMENTOWANIA...
++ *x* Pozycja x'owa gracza (kolumna, w której się znajduje).
++ *y* Pozycja y'owa gracza (wiersz, w którym się znajduje).
++ *name* Imię gracza, narazie jest to jego login.
+
+### Poruszanie się postacią
+```python
+{
+"type":"set_position",
+"x":x,
+"y":y
+}
+```
++ *x* Zadana pozycja x'owa gracza.
++ *y* Zadana pozycja y'owa gracza.
+
+Po wysłaniu tego pakietu dostaniemy zaktualizowaną listę graczy, tak jak przy [pobieraniu listy graczy](###-Pobranie-listy-graczy-i-ich-postaci)
