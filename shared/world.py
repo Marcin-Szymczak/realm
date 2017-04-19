@@ -30,7 +30,7 @@ class Level:
         self.width = width
         self.height = height
         self.depth = depth
-        self.data = array.array('B',[0 for i in range(2*width*height)])
+        self.data = [0 for i in range(2*width*height)]
 
     def get_tile(self,x,y,z):
         if x < 0 or x >= self.width or \

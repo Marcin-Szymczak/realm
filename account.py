@@ -118,7 +118,6 @@ def load_accounts():
         match = re.match("(.*)\.account", entry.name)
         if match and entry.is_file():
             acc = match.group(1)
-            print(acc)
             if load_account(acc):
                 print(f"Account {acc} loaded!")
 

@@ -4,13 +4,15 @@ from shared.network import Packet
 worlds = {}
 
 def init():
-    w = world.Level(64,16,2)
+    w = world.Level(16,16,1)
     worlds[0] = w
 
 def update():
     pass
 
 def handle_packet(client, packet):
+    if not client:
+        return
     data = packet.data
     if data["type"] == "chat":
         if data["channel"] == "global":
@@ -21,12 +23,13 @@ def handle_packet(client, packet):
                 "player_id":client.id,
             })
             for client in globals.server.clients:
-               packet.send(client)
+                if client:
+                    client.send(packet)
 
     if data["type"] == "player_list_request":
-        player_list = ()
+        player_list = []
         for client in globals.server.clients:
-
+            if not client: continue
             pl = {
                 "name": client.account,
                 "x": client.player.x,
@@ -42,3 +45,15 @@ def handle_packet(client, packet):
         })
 
         client.send(packet)
+    if data["type"] == "map_request":
+        map = worlds[0]
+
+        packet = Packet("game",{
+            "type":"map_content",
+            "width":map.width,
+            "height":map.height,
+            "data":map.data,
+        })
+
+        client.send(packet)
+        print(f"Map content sent to client {client.account}")

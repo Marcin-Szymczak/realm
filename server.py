@@ -128,8 +128,8 @@ class Server:
 
             if write:
                 while not client.send_queue.empty():
-                    packet = client.write_queue.get(False)
-                    packet.send(client)
+                    packet = client.send_queue.get(block=False)
+                    packet.send(client.socket)
 
     def main_loop(self):
         run = True
