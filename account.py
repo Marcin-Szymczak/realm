@@ -3,6 +3,7 @@ from shared.network import Packet
 import re
 import os
 import json
+import game
 
 accounts = {}
 
@@ -32,6 +33,7 @@ def handle_packet(client,packet):
                     "result":True,
                 })
                 packet.send(client.socket)
+                 
                 return
             else:
                 packet = Packet("account",{
@@ -83,6 +85,9 @@ def handle_packet(client,packet):
             "result":True,
         })
         packet.send(client.socket)
+
+def client_connected(client):
+    pass
 
 def save_account(account):
     if account in accounts:

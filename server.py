@@ -73,6 +73,11 @@ class Server:
     def set_max_clients(self, max):
         self.max_clients = max
 
+    def broadcast(self, packet):
+        for cl in self.clients:
+            if not cl: continue
+            cl.send(packet)
+
     def get_hostname(self):
         return self.socket.getsockname()
 
@@ -108,28 +113,35 @@ class Server:
             self.clients.append(client)
             print(f"{client} connected!")
 
+            account.client_connected(client)
+            game.client_connected(client)
+
     def process_packets(self):
-        for client in self.clients:
-            if not client:
-                continue
-
-            read, write = select.select([client.socket],[client.socket],[],0)[0:2]
-            if read:
-                message = client.socket.recv(4096)
-                if len(message) == 0:
-                    self.disconnect_client(client)
+        try:
+            for client in self.clients:
+                if not client:
                     continue
-                try:
-                    packet = Packet.from_bytes(message)
-                    client.receive_queue.put(packet)
-                    #print(packet)
-                except Exception as e:
-                    print(f"Invalid packet {message} {e}")
 
-            if write:
-                while not client.send_queue.empty():
-                    packet = client.send_queue.get(block=False)
-                    packet.send(client.socket)
+                read, write = select.select([client.socket],[client.socket],[],0)[0:2]
+                if read:
+                    message = client.socket.recv(4096)
+                    if len(message) == 0:
+                        self.disconnect_client(client)
+                        continue
+                    try:
+                        packet = Packet.from_bytes(message)
+                        client.receive_queue.put(packet)
+                        print("<<",packet)
+                    except Exception as e:
+                        print(f"Invalid packet {message} {e}")
+
+                if write:
+                    while not client.send_queue.empty():
+                        packet = client.send_queue.get(block=False)
+                        packet.send(client.socket)
+                        print(">>",packet)
+        except Exception as e:
+            print(e)
 
     def main_loop(self):
         run = True
@@ -159,7 +171,7 @@ class Server:
         self.thread.start()
 
 if __name__ == "__main__":
-    globals.server = Server(ip="localhost",port=50000)
+    globals.server = Server(ip="42.0.156.3",port=50000)
     server = globals.server
     server.set_max_clients(4096)
     server.start()

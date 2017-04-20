@@ -39,6 +39,8 @@ class Packet:
             
     """
 
+    packet_buffer = None
+
     msg_lookup = {}
     for i,t in enumerate(msg_group):
         msg_lookup[t] = i
@@ -50,7 +52,7 @@ class Packet:
     def __repr__(self):
         return f"{self.group} {self.data}"
 
-    def from_bytes(data):
+    def from_bytes(data,buffer = packet_buffer):
 
         group = Packet.msg_group[ data[0]]
         data = json.loads(data[1:].decode(), encoding='utf-8')
