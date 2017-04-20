@@ -120,11 +120,26 @@ Na taki pakiet otrzymamy odpowiedź.
 "type":"map_content",
 "width": szerokosc,
 "height": wysokosc,
+"reset": reset
+"slice_x": sx,
+"slice_y": sy,
+"slice_width": sw,
+"slice_height": sh,
 "data": dane
 }
 ```
 
+Plansza jest przesyłana w kawałkach, tak aby nie przekroczyć maksymalnej wielkości pakietu wysyłanej na raz, więc aktualizujecie ją w kawałkach otrzymanych od servera.
+
++ *reset* True/False, czy klient powinien pozbyć się swojej wersji mapy, będzie ustawiane na true
+w przypadku, kiedy przejdziemy do nowej lokacji i otrzymamy zupełnie nową planszę,
+wraz z otrzymaniem fragmentu mapy z flagą reset należy przyjrzeć się nowej wielkości i szerokości planszy.
++ *slice_x* x'owa współrzędna otrzymanego prostokątnego wycinka planszy
++ *slice_y* y'owa współrzędna otrzymanego prostokątnego wycinka planszy
++ *slice_width* szerokość otrzymanego prostokątnego wycinka planszy
++ *slice_height* wysokość otrzymanego prostokątnego wycinka planszy
 + *dane* to lista liczb o długości szerokosc\*wysokosc, aby dostać się do poszczególnej komórki o współrzędnych (x,y) można posłużyć się prostym wzorem: komórka = dane[x+y*szerokosc].
+
 
 Server w przypadku zmian planszy samoczynnie wyśle nam nową wersje planszy.
 
@@ -147,6 +162,10 @@ Otrzymamy odpowiedź
 ```
 
 + *lista_graczy* Pythonowa lista składająca się ze słowników, każdy "gracz" jest opisany w następujący sposób.
+
+Listę graczy otrzymamy również w przypadku, kiedy ktoś podłączy się do servera i poprawnie zaloguje, nie ma potrzeby
+okresowego odpytywania servera o listę graczy.
+
 ```python
 player = {
   "x": x,
