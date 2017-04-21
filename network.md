@@ -191,3 +191,47 @@ player = {
 + *y* Zadana pozycja y'owa gracza.
 
 Po wysłaniu tego pakietu dostaniemy zaktualizowaną listę graczy, tak jak przy [pobieraniu listy graczy](###-Pobranie-listy-graczy-i-ich-postaci)
+
+Odpowiedź na taki pakiet wygląda następująco:
+```python
+{
+"type":"result",
+"action":"set_position",
+"x":x,
+"y":y,
+"result":rezultat
+"description":opis
+}
+```
+
++ *rezultat* True/False, czy ruch się powiódł
++ *description* Pojawi się tylko jeśli ruch się nie powiedzie. Zawiera opis przyczyny niepowodzenia.
+
+### Atakowanie innych postaci
+Atakowanie innych postaci odbywa się poprzez wysłanie żądania zaatakowania konkretnego miejsca na planszy.
+Jeśli podane miejsce zawiera postać i jest w zasięgu naszej broni, to atak się powiedzie.
+
+```python
+{
+"type":"attack",
+"x":x,
+"y":y
+}
+```
+
+Na co dostaniemy odpowiedź
+
+```python
+{
+"type":"result",
+"action":"attack",
+"x":x,
+"y":y,
+"result":rezultat,
+"description":opis,
+}
+```
+
++ *rezultalt* True/False, czy atak się powiódł
++ *description* Pojawi się tylko jeśli atak się nie powiedzie. Zawiera słowny opis przyczyny niepowodzenia.
+

@@ -8,9 +8,14 @@ import account
 import game
 import traceback
 import sys
+import game
+import hooks
+
 from player import Player
 
 from shared.network import Packet
+
+_PRINT_PACKETS = False
 
 class Client:
     STATE_CONNECTING = 0
@@ -29,7 +34,7 @@ class Client:
 
         self.send_queue = queue.Queue()
         self.receive_queue = queue.Queue()
-
+        self.recv_buffer = Packet.create_buffer()
     def __repr__(self):
         return f"(Client #{self.id} {self.ip} : {self.state}"
 
@@ -46,6 +51,7 @@ class Client:
 
     def receive_available(self):
         return not self.receive_queue.empty()
+
 
     def handle_packet(self,packet):
         try:
@@ -112,9 +118,7 @@ class Server:
             client = Client(conn,addr,len(self.clients))
             self.clients.append(client)
             print(f"{client} connected!")
-
-            account.client_connected(client)
-            game.client_connected(client)
+            hooks.call("client_connected", client)
 
     def process_packets(self):
         try:
@@ -129,17 +133,20 @@ class Server:
                         self.disconnect_client(client)
                         continue
                     try:
-                        packet = Packet.from_bytes(message)
-                        client.receive_queue.put(packet)
-                        print("<<",packet)
+                        #packet = Packet.from_bytes(message)
+                        packet,client.recv_buffer = Packet.recv(message, client.recv_buffer)
+                        if packet:
+                            client.receive_queue.put(packet)
+                        if _PRINT_PACKETS: print(f"<<{client.id}<<",packet)
+
                     except Exception as e:
                         print(f"Invalid packet {message} {e}")
 
                 if write:
-                    while not client.send_queue.empty():
+                    if not client.send_queue.empty():
                         packet = client.send_queue.get(block=False)
                         packet.send(client.socket)
-                        print(">>",packet)
+                        if _PRINT_PACKETS: print(f">>{client.id}>>",packet)
         except Exception as e:
             print(e)
 
@@ -171,7 +178,11 @@ class Server:
         self.thread.start()
 
 if __name__ == "__main__":
-    globals.server = Server(ip="42.0.156.3",port=50000)
+    hooks.register("client_connected",Client)
+    hooks.register("player_created",Client)
+    hooks.register("client_disconnected",Client)
+    
+    globals.server = Server(ip="localhost",port=50000)
     server = globals.server
     server.set_max_clients(4096)
     server.start()

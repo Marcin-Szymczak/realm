@@ -4,6 +4,7 @@ import re
 import os
 import json
 import game
+import hooks
 
 accounts = {}
 
@@ -20,10 +21,11 @@ def handle_packet(client,packet):
                 "result":False,
                 "description":"Already logged in!",
             })
-            packet.send(client.socket)
+            client.send(packet)
             return
         acc = payload["account"]
         if acc in accounts:
+            # Client succesfully logged in
             if accounts[acc]["password"] == payload["password"]:
                 client.account = acc
                 packet = Packet("account",{
@@ -32,8 +34,8 @@ def handle_packet(client,packet):
                     "account":payload["account"],
                     "result":True,
                 })
-                packet.send(client.socket)
-                 
+                client.send(packet)
+                hooks.call("player_created",client)
                 return
             else:
                 packet = Packet("account",{
@@ -42,7 +44,7 @@ def handle_packet(client,packet):
                     "result":False,
                     "description":"Invalid password.",
                 })
-                packet.send(client.socket)
+                client.send(packet)
                 return
         else:
             packet = Packet("account",{
@@ -51,7 +53,7 @@ def handle_packet(client,packet):
                 "result":False,
                 "description":"Account does not exist.",
             })
-            packet.send(client.socket)
+            client.send(packet)
             return
 
 
@@ -65,7 +67,7 @@ def handle_packet(client,packet):
                 "result":False,
                 "description":f"{acc} already exists."
             })
-            packet.send(client.socket)
+            client.send(packet)
             return
         if not re.match("[a-zA-Z0-9_\-]", payload["account"]):
             packet = Packet("account",{
@@ -75,7 +77,7 @@ def handle_packet(client,packet):
                 "result":False,
                 "description":f"Account can contain only letters, numbers and a dash."
             })
-            packet.send(client.socket)
+            client.send(packet)
             return
         register(payload["account"], payload["password"])
         packet = Packet("account",{
@@ -84,7 +86,7 @@ def handle_packet(client,packet):
             "account":payload["account"],
             "result":True,
         })
-        packet.send(client.socket)
+        client.send(packet)
 
 def client_connected(client):
     pass

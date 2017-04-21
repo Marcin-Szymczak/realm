@@ -5,45 +5,19 @@ import socket
 class Packet:
     type_length = 1
     endianness = "big"
+    
+    END_MARKER = b'\xFF'
+    
     msg_group = [
         "disconnect",
         "account",
         "game"
         ]
 
-    """
-        packet.group can be:
-            disconnect
-            account
-                type:
-                    "login"
-                    account: account
-                    password: password
-                    
-                    "register"
-                    account: account
-                    password: password
-                
-                    "result"
-                    action: "login"/"register"
-                    result: True/False
-                        True if the action succeded
-                        False if the action failed
-                    description: If the action failed, it contains the
-                        reason of failure
-            game
-                type:
-                    chat
-                    channel: "global"
-                    message: chat message
-            
-    """
-
-    packet_buffer = None
-
     msg_lookup = {}
     for i,t in enumerate(msg_group):
         msg_lookup[t] = i
+
 
     def __init__(self,group,data):
         self.group = group
@@ -52,17 +26,40 @@ class Packet:
     def __repr__(self):
         return f"{self.group} {self.data}"
 
-    def from_bytes(data,buffer = packet_buffer):
+    def create_buffer():
+        return bytearray()
 
+    def recv(data,buffer):
+        buffer += data
+        packet = None
+        index = buffer.find(b'\xFF')
+        if index != -1:
+            data = buffer[0:index+1]
+            packet = Packet.from_bytes(data)
+            if index < len(buffer)-2:
+                buffer = buffer[index+1:]
+            else:
+                buffer = bytearray()
+        return packet, buffer
+
+    def from_bytes(data):
+        if data[-1] != Packet.END_MARKER[0]:
+            return None
         group = Packet.msg_group[ data[0]]
-        data = json.loads(data[1:].decode(), encoding='utf-8')
+        data = json.loads(data[1:-1].decode(), encoding='utf-8')
         return Packet(group,data)
 
     def to_bytes(self):
         data = bytearray()
         data += Packet.msg_lookup[ self.group].to_bytes(Packet.type_length, Packet.endianness)
         data += json.dumps(self.data).encode('utf-8')
+        data += Packet.END_MARKER;
         return data
 
     def send(self, sock):
-        return sock.send(self.to_bytes())
+        raw_data = self.to_bytes()
+        count = sock.send(raw_data)
+        print(f"Sent packet, {count} bytes")
+        return raw_data[count:]
+
+
