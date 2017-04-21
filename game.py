@@ -1,13 +1,13 @@
 import globals
 import hooks
 
-from shared import world
+import world
 from shared.network import Packet
+
 worlds = {}
 
 def init():
-    w = world.Level(64,32,1)
-    worlds[0] = w
+    worlds["main"] = world.Level(64,32,1)
     
     hooks.hook("client_connected", client_connected)
     hooks.hook("player_created", player_connected)
@@ -29,12 +29,14 @@ def packet_player_list():
     player_list = []
     for client in globals.server.clients:
         if not client: continue
-        pl = {
-            "name": client.account,
-            "x": client.player.x,
-            "y": client.player.y,
-            "id": client.id,
-        }
+        pl = client.player.packet()
+        pl["id"] = client.id
+        #{
+        #    "name": client.account,
+        #    "x": client.player.x,
+        #    "y": client.player.y,
+        #    "id": client.id,
+        #}
 
         player_list.append(pl)
 
@@ -84,10 +86,9 @@ def handle_packet(client, packet):
         client.send(packet_player_list())
 
     elif data["type"] == "map_request":
-
         client.send(packet_map_content(0,0,0,-1,-1))
         print(f"Map content sent to client {client.account}")
-    elif data["type"] = "set_position":
+    elif data["type"] == "set_position":
         client.player.x = data["x"]
         client.player.y = data["y"]
         
@@ -106,7 +107,7 @@ def handle_packet(client, packet):
         })
         client.send(packet)
     elif data["type"] == "attack":
-        packet = Packet(",{
+        packet = Packet("game",{
             "type":"result",
             "action":"attack",
             "x": data["x"],
