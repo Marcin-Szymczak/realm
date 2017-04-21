@@ -35,6 +35,7 @@ class Client:
         self.send_queue = queue.Queue()
         self.receive_queue = queue.Queue()
         self.recv_buffer = Packet.create_buffer()
+
     def __repr__(self):
         return f"(Client #{self.id} {self.ip} : {self.state}"
 
@@ -51,7 +52,6 @@ class Client:
 
     def receive_available(self):
         return not self.receive_queue.empty()
-
 
     def handle_packet(self,packet):
         try:

@@ -235,3 +235,38 @@ Na co dostaniemy odpowiedź
 + *rezultalt* True/False, czy atak się powiódł
 + *description* Pojawi się tylko jeśli atak się nie powiedzie. Zawiera słowny opis przyczyny niepowodzenia.
 
+### Odpytanie o własne statystyki
+Aby dowiedzieć się, jakie statystyki posiada nasza postać należy wysłać pakiet
+```python
+{
+"type":"stats_request",
+}
+```
+
+Odpowiedź:
+
+```python
+{
+"type":"stats",
+"target":"player",
+"player_id":id_gracza,
+"strength": sila,
+"dexterity": zrecznosc,
+"wisdom": madrosc,
+"health": punkty_zycia,
+"health_capacity": maksymalne_punkty_zycia,
+"mana": punkty_many,
+"mana_capacity": maksymalne_punkty_many
+}
+```
+
++ *target* rodzaj obiektu, którego statystyki otrzymaliśmy, narazie zawsze będzie "player"
++ *player\_id* jeśli "target"="player", to to jest id gracza, którego statystyki są w pakiecie, będzie to nasze id
++ *strength* Siła
++ *dexterity* Zręczność
++ *wisdom* Mądrość
++ *health* Aktualne punkty życia
++ *health\_capacity*  Maksymalna ilość punktów życia, jaką obiekt w tym momencie może posiadać
++ *mana* Aktualne punkty many
++ *mana_capacity* Maksymalna ilość punktów many, jaką obiekt w tym momencie może posiadać
+

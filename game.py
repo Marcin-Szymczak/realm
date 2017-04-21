@@ -22,7 +22,7 @@ def player_connected(client):
     print(f"Player {client.account} connected") 
     pl = client.player
     pl.x = client.id
-    broadcast_player_list()
+    globals.server.broadcast( packet_player_list() )
     client.send(packet_map_content(0)) 
 
 def packet_player_list():
@@ -43,9 +43,6 @@ def packet_player_list():
         "players":player_list,
     })
     return packet
-
-def broadcast_player_list():
-    globals.server.broadcast( packet_player_list() )
 
 def packet_map_content(world, x=0,y=0,w=-1,h=-1):
     map = worlds[world]
@@ -83,10 +80,39 @@ def handle_packet(client, packet):
                 if client:
                     client.send(packet)
 
-    if data["type"] == "player_list_request":
+    elif data["type"] == "player_list_request":
         client.send(packet_player_list())
 
-    if data["type"] == "map_request":
+    elif data["type"] == "map_request":
 
         client.send(packet_map_content(0,0,0,-1,-1))
         print(f"Map content sent to client {client.account}")
+    elif data["type"] = "set_position":
+        client.player.x = data["x"]
+        client.player.y = data["y"]
+        
+        globals.server.broadcast(packet_player_list())
+    elif data["type"] == "stats_request":
+        packet = Packet("game",{
+            "target":"player",
+            "player_id":client.id,
+            "strength":0,
+            "dexterity":0,
+            "wisdom":0,
+            "health":0,
+            "health_capacity":0,
+            "mana":0,
+            "mana_capacity":0
+        })
+        client.send(packet)
+    elif data["type"] == "attack":
+        packet = Packet(",{
+            "type":"result",
+            "action":"attack",
+            "x": data["x"],
+            "y": data["y"],
+            "result":False,
+            "description":"Action not yet implemented!"
+        })
+        client.send(packet)
+
