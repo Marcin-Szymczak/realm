@@ -12,10 +12,3 @@ class Player:
         self.health_capacity = 0
         self.mana = 0
         self.mana_capacity = 0
-
-    def packet(self):
-        return {
-            "name":self.name,
-            "x":self.x,
-            "y":self.y,
-        }

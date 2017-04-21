@@ -18,9 +18,9 @@ def call(name, *args, **kvargs):
         for i, arg in enumerate(args):
             if arg.__class__ != hook["arg_classes"][i]:
                 raise HookBadArgException 
-        print(f"Calling all attached hooks of {name}")
+        # print(f"Calling all attached hooks of {name}")
         for hook in _hooks[name]["hooks"]:
-            print(hook["function"])
+            # print(hook["function"])
             hook["function"](*args,**kvargs)
     else:
         raise HookException

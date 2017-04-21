@@ -59,7 +59,7 @@ class Packet:
     def send(self, sock):
         raw_data = self.to_bytes()
         count = sock.send(raw_data)
-        print(f"Sent packet, {count} bytes")
+        # print(f"Sent packet, {count} bytes")
         return raw_data[count:]
 
 

@@ -10,6 +10,10 @@ accounts = {}
 
 accounts_dir = "accounts"
 
+def init():
+    hooks.hook("client_connected", client_connected)
+    load_accounts()
+
 # noinspection PyTypeChecker
 def handle_packet(client,packet):
     payload = packet.data
@@ -89,7 +93,11 @@ def handle_packet(client,packet):
         client.send(packet)
 
 def client_connected(client):
-    pass
+    packet = Packet("account",{
+        "type":"client_info",
+        "id":client.id,
+        })
+    client.send(packet)
 
 def save_account(account):
     if account in accounts:

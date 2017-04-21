@@ -115,7 +115,7 @@ class Server:
         for to_accept in lists[0]:
             conn, addr = self.socket.accept()
             conn.setblocking(False)
-            client = Client(conn,addr,len(self.clients))
+            client = Client(conn,addr,id=len(self.clients))
             self.clients.append(client)
             print(f"{client} connected!")
             hooks.call("client_connected", client)
@@ -152,7 +152,7 @@ class Server:
 
     def main_loop(self):
         run = True
-        account.load_accounts()
+        account.init()
         game.init()
         while run:
             run = self.handle_commands()
@@ -203,5 +203,8 @@ if __name__ == "__main__":
             account.register(input("login: "), input("password: "))
         elif parts[0] == "delaccount":
             del account.accounts[parts[1]]
+        elif parts[0] == "debug_packets":
+            _PRINT_PACKETS = bool(parts[1])
+            print(f"_PRINT_PACKETS {_PRINT_PACKETS}")
         else:
             print("Unknown command!")

@@ -31,7 +31,17 @@ class Level:
         self.height = height
         self.depth = depth
         self.data = [0 for i in range(2*width*height)]
+        
+    def generate(self, world_type):
+        if world_type == "giant room":
+            for i in range(0,self.width):
+                self.set_tile(i,0,0,1)
+                self.set_tile(i,self.height-1,0,1)
 
+            for i in range(0,self.height):
+                self.set_tile(0,i,0,1)
+                self.set_tile(self.width-1,i,0,1)
+    
     def get_tile(self,x,y,z):
         if x < 0 or x >= self.width or \
            y < 0 or y >= self.height or \
