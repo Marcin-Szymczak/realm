@@ -1,5 +1,6 @@
 class Player:
-    def __init__(self):
+    def __init__(self, client):
+        self.client=client
         self.x = 0
         self.y = 0
         self.name = None
@@ -12,3 +13,5 @@ class Player:
         self.health_capacity = 0
         self.mana = 0
         self.mana_capacity = 0
+        self.experience = 0
+        self.level = 1

@@ -57,6 +57,21 @@ def packet_player_list():
     })
     return packet
 
+def packet_player_stats(id):
+    client = globals.server.clients[id]
+    pl = client.player
+    packet = Packet("game",{
+        "target":"player",
+        "player_id":id,
+        "strength":0,
+        "dexterity":0,
+        "wisdom":0,
+        "health":0,
+        "health_capacity":0,
+        "mana":0,
+        "mana_capacity":0
+    })
+
 def packet_map_content(world, x=0,y=0,w=-1,h=-1):
     map = worlds[world]
     if w < 0:
@@ -75,6 +90,26 @@ def packet_map_content(world, x=0,y=0,w=-1,h=-1):
         "data":map.data,
     })
     return packet
+
+def find_player_on_map(x,y):
+    for client in globals.server.clients:
+        if not client: continue
+        pl = client.player
+        if pl.x == x and pl.y == y:
+            return pl
+    return None
+
+def resolve_attack(attacker, victim):
+    pass
+    #packet = Packet("game",{
+    #    "type":"result",
+    #    "action":"attack",
+    #    "x": data["x"],
+    #    "y": data["y"],
+    #    "result":False,
+    #    "description":"Action not yet implemented!"
+    #})
+    #client.send(packet)
 
 def handle_packet(client, packet):
     if not client:
@@ -114,26 +149,20 @@ def handle_packet(client, packet):
             return
         globals.server.broadcast(packet_player_list())
     elif data["type"] == "stats_request":
-        packet = Packet("game",{
-            "target":"player",
-            "player_id":client.id,
-            "strength":0,
-            "dexterity":0,
-            "wisdom":0,
-            "health":0,
-            "health_capacity":0,
-            "mana":0,
-            "mana_capacity":0
-        })
-        client.send(packet)
+        client.send(packet_player_stats(client.id))
     elif data["type"] == "attack":
-        packet = Packet("game",{
-            "type":"result",
-            "action":"attack",
-            "x": data["x"],
-            "y": data["y"],
-            "result":False,
-            "description":"Action not yet implemented!"
-        })
-        client.send(packet)
+        attacker = client.player
+        victim = find_player_on_map(data["x"], data["y"])
+        if not victim:
+            packet = Packet("game", {
+                "type":"result",
+                "action":"attack",
+                "result":False,
+                "x":data["x"],
+                "y":data["y"],
+                "description":"No object found on the requested position."
+            })
+            client.send(packet)
+            return
+        resolve_attack(attacker,victim)
 

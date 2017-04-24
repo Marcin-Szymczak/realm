@@ -30,7 +30,7 @@ class Client:
 
         self.account = None
 
-        self.player = Player()
+        self.player = Player(self)
 
         self.send_queue = queue.Queue()
         self.receive_queue = queue.Queue()
@@ -105,7 +105,7 @@ class Server:
 
     def disconnect_client(self, client):
         print(f"{client} disconnected!")
-        client.socket.shutdown(socket.SHUT_RDWR)
+        #client.socket.shutdown(socket.SHUT_RDWR)
         client.socket.close()
         self.clients[client.id] = None
 
