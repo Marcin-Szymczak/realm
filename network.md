@@ -97,10 +97,14 @@ Na, który to dostaniemy my jak i reszta graczy odpowiedź:
 "type":"chat",
 "channel":kanal,
 "message":wiadomosc,
-"player_id": id,
+"player_id": id, # dla kanału global
 }
 ```
 + *kanal* Kanał, na który gracz wysłał wiadomość.
+Przewidziane kanały:
+++ global kanał czatu, w którym wszyscy gracze otrzymują od siebie nawzajem wiadomości
+++ system wiadomośći systemowe
+++ game wiadomości związane z grą
 + *wiadomosc* Treść wiadomości wysłanej przez gracza.
 + *id* Id gracza, który przesłał wiadomość (aby powiązać nick i id należy uprzednio odpytać server o listę graczy).
 

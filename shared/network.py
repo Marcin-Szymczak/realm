@@ -18,7 +18,6 @@ class Packet:
     for i,t in enumerate(msg_group):
         msg_lookup[t] = i
 
-
     def __init__(self,group,data):
         self.group = group
         self.data = data
@@ -30,7 +29,8 @@ class Packet:
         return bytearray()
 
     def recv(data,buffer):
-        buffer += data
+        if data:
+            buffer += data
         packet = None
         index = buffer.find(b'\xFF')
         if index != -1:

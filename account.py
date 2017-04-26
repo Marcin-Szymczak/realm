@@ -12,6 +12,7 @@ accounts_dir = "accounts"
 
 def init():
     hooks.hook("client_connected", client_connected)
+    hooks.hook("client_disconnected", client_disconnected)
     load_accounts()
 
 # noinspection PyTypeChecker
@@ -23,15 +24,24 @@ def handle_packet(client,packet):
                 "type":"result",
                 "action":"login",
                 "result":False,
-                "description":"Already logged in!",
+                "description":"You are already logged in!",
             })
             client.send(packet)
             return
         acc = payload["account"]
         if acc in accounts:
+            if "logged_in" in accounts[acc]["temporary"]:
+                packet = Packet("account",{
+                    "type":"result",
+                    "action":"login",
+                    "account":payload["account"],
+                    "result":False,
+                    "description":"Someone is already logged in this account!",
+                })
             # Client succesfully logged in
             if accounts[acc]["password"] == payload["password"]:
                 client.account = acc
+                accounts[acc]["temporary"]["logged_in"] = True
                 packet = Packet("account",{
                     "type":"result",
                     "action":"login",
@@ -99,13 +109,24 @@ def client_connected(client):
         })
     client.send(packet)
 
+def client_disconnected(client):
+    if client.account and client.account in accounts:
+        acc = accounts[client.account]
+        client.player.save_to_account(acc)
+        save_account(client.account)
+
 def save_account(account):
     if account in accounts:
         if not os.path.exists(accounts_dir):
             os.mkdir(accounts_dir)
         filename = f"{accounts_dir}/{account}.account"
         with open(filename, 'w') as f:
-           f.write(json.dumps(accounts[account]))
+            temp = accounts[account]["temporary"]
+            del accounts[account]["temporary"]
+            f.write(json.dumps(accounts[account]))
+            accounts[account]["temporary"] = temp
+        print(f"Account {account} saved!")
+
 def save_accounts():
     for acc in accounts:
         save_account(acc)
@@ -123,6 +144,7 @@ def load_account(account, clear=False):
             return False
 
         accounts[account] = data
+        accounts[account]["temporary"] = {}
     return True
 
 def load_accounts():
@@ -136,6 +158,10 @@ def load_accounts():
             if load_account(acc):
                 print(f"Account {acc} loaded!")
 
+def delete(account):
+    if account in accounts:
+        del accounts[account]
+        os.remove(f"{accounts_dir}/{account}.account")
 
 def register(login,password):
     if login in accounts:
@@ -144,7 +170,8 @@ def register(login,password):
     accounts[login] = {
         "password":password,
         "lastlogin":"never",
-        "total_playtime":0}
+        "total_playtime":0,
+        "temporary":{}}
     print(f"Registered account {login}")
     save_account(login)
 

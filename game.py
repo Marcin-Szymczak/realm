@@ -4,6 +4,8 @@ import hooks
 import world
 from shared.network import Packet
 import random
+import math
+import account
 
 worlds = {}
 
@@ -22,21 +24,23 @@ def client_connected(client):
 def player_connected(client):
     print(f"Player {client.account} connected") 
     pl = client.player
-    pl.name = client.account
-    pl.world = "main"
-    map = worlds[pl.world]
 
-    while True:
-        x = random.randint(0,map.width)
-        y = random.randint(0,map.height)
-        if map.get_tile(x,y,0) == 0:
-            break
+    acc = account.accounts[client.account]
 
-    pl.x = x
-    pl.y = y
-    pl.world = "main"
+    if acc.get("player",False):
+        print("restoring previous player!")
+        pl.load_from_account(acc)
+    else:
+        pl.name = client.account
+        pl.world = "main"
+
+        pl.health_capacity = 10
+        pl.spawn()
+        pl.save_to_account(acc)
+
     globals.server.broadcast( packet_player_list() )
     client.send(packet_map_content(pl.world))
+    client.send(packet_player_stats(client.id))
 
 def packet_player_list():
     player_list = []
@@ -61,16 +65,18 @@ def packet_player_stats(id):
     client = globals.server.clients[id]
     pl = client.player
     packet = Packet("game",{
+        "type":"stats",
         "target":"player",
         "player_id":id,
-        "strength":0,
-        "dexterity":0,
-        "wisdom":0,
-        "health":0,
-        "health_capacity":0,
-        "mana":0,
-        "mana_capacity":0
+        "strength":pl.strength,
+        "dexterity":pl.dexterity,
+        "wisdom":pl.wisdom,
+        "health":pl.health,
+        "health_capacity":pl.health_capacity,
+        "mana":pl.mana,
+        "mana_capacity":pl.mana_capacity,
     })
+    return packet
 
 def packet_map_content(world, x=0,y=0,w=-1,h=-1):
     map = worlds[world]
@@ -88,6 +94,7 @@ def packet_map_content(world, x=0,y=0,w=-1,h=-1):
         "slice_width":map.width,
         "slice_height":map.height,
         "data":map.data,
+        "reset":True,
     })
     return packet
 
@@ -100,16 +107,34 @@ def find_player_on_map(x,y):
     return None
 
 def resolve_attack(attacker, victim):
-    pass
-    #packet = Packet("game",{
-    #    "type":"result",
-    #    "action":"attack",
-    #    "x": data["x"],
-    #    "y": data["y"],
-    #    "result":False,
-    #    "description":"Action not yet implemented!"
-    #})
-    #client.send(packet)
+    if math.sqrt( (attacker.x-victim.x)**2 + (attacker.y-victim.y)**2) > 1:
+        packet = Packet("game",{
+            "type":"result",
+            "action":"attack",
+            "x":victim.x,
+            "y":victim.y,
+            "result":False,
+            "description":"Too far away!",
+        })
+        attacker.send(packet)
+        return
+
+    victim.health -= 1
+    if victim.health <= 0:
+        victim.spawn()
+    packet = Packet("game",{
+        "type":"result",
+        "action":"attack",
+        "x":victim.x,
+        "y":victim.y,
+        "result":True
+    })
+
+    attacker.client.send(packet)
+    for client in [attacker.client,victim.client]:
+        client.send(packet_player_stats(attacker.client.id))
+        client.send(packet_player_stats(victim.client.id))
+
 
 def handle_packet(client, packet):
     if not client:

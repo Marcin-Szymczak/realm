@@ -10,6 +10,7 @@ import traceback
 import sys
 import game
 import hooks
+import time
 
 from player import Player
 
@@ -67,6 +68,7 @@ class Server:
     def __init__(self,*,ip=None,port=None,max_clients=0):
         self.socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,True)
+        self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
         self.socket.setblocking(False)
         self.max_clients = 0
         self.ip = ip
@@ -106,6 +108,7 @@ class Server:
     def disconnect_client(self, client):
         print(f"{client} disconnected!")
         #client.socket.shutdown(socket.SHUT_RDWR)
+        hooks.call("client_disconnected",client)
         client.socket.close()
         self.clients[client.id] = None
 
@@ -115,6 +118,7 @@ class Server:
         for to_accept in lists[0]:
             conn, addr = self.socket.accept()
             conn.setblocking(False)
+            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
             client = Client(conn,addr,id=len(self.clients))
             self.clients.append(client)
             print(f"{client} connected!")
@@ -125,30 +129,40 @@ class Server:
             for client in self.clients:
                 if not client:
                     continue
+                packet, client.recv_buffer = Packet.recv(None, client.recv_buffer)
+                while packet:
+                    if _PRINT_PACKETS: print(f"<<{client.id}<<",packet)
+                    client.receive_queue.put(packet)
+                    packet, client.recv_buffer = Packet.recv(None, client.recv_buffer)
+
 
                 read, write = select.select([client.socket],[client.socket],[],0)[0:2]
                 if read:
-                    message = client.socket.recv(4096)
+                    message = client.socket.recv(2048)
                     if len(message) == 0:
                         self.disconnect_client(client)
                         continue
                     try:
                         #packet = Packet.from_bytes(message)
                         packet,client.recv_buffer = Packet.recv(message, client.recv_buffer)
-                        if packet:
+                        while packet:
+                            if _PRINT_PACKETS: print(f"<<{client.id}<<",packet)
                             client.receive_queue.put(packet)
-                        if _PRINT_PACKETS: print(f"<<{client.id}<<",packet)
+                            packet, client.recv_buffer = Packet.recv(None, client.recv_buffer)
 
                     except Exception as e:
                         print(f"Invalid packet {message} {e}")
+                        traceback.print_exc(file=sys.stdout)
 
                 if write:
                     if not client.send_queue.empty():
                         packet = client.send_queue.get(block=False)
-                        packet.send(client.socket)
+                        if packet:
+                            packet.send(client.socket)
                         if _PRINT_PACKETS: print(f">>{client.id}>>",packet)
         except Exception as e:
             print(e)
+            traceback.print_exc(file=sys.stdout)
 
     def main_loop(self):
         run = True
@@ -164,7 +178,7 @@ class Server:
 
                 while client.receive_available():
                     client.handle_packet(client.receive())
-
+            time.sleep(0.01)
             #game.update()
         account.save_accounts()
         self.socket.shutdown(socket.SHUT_RDWR)
@@ -188,23 +202,28 @@ if __name__ == "__main__":
     server.start()
 
     while True:
-        command = input(f"{server.get_hostname()}$ ")
-        parts = command.split(' ',maxsplit=2)
-        if command == "quit":
-            server.queue.put("quit")
-            break
-        elif command == "clients":
-            server.print_clients()
-        elif command == "accounts":
-            account.print_accounts()
-        elif parts[0] == "account":
-            account.print_details(parts[1])
-        elif command == "register":
-            account.register(input("login: "), input("password: "))
-        elif parts[0] == "delaccount":
-            del account.accounts[parts[1]]
-        elif parts[0] == "debug_packets":
-            _PRINT_PACKETS = bool(parts[1])
-            print(f"_PRINT_PACKETS {_PRINT_PACKETS}")
-        else:
-            print("Unknown command!")
+        try:
+            command = input(f"{server.get_hostname()}$ ")
+            parts = command.split(' ',maxsplit=2)
+            if command == "quit":
+                server.queue.put("quit")
+                break
+            elif command == "clients":
+                server.print_clients()
+            elif command == "accounts":
+                account.print_accounts()
+            elif parts[0] == "account":
+                account.print_details(parts[1])
+            elif command == "register":
+                account.register(input("login: "), input("password: "))
+            elif parts[0] == "delaccount":
+                #del account.accounts[parts[1]]
+                account.delete(parts[1])
+            elif parts[0] == "debug_packets":
+                _PRINT_PACKETS = bool(parts[1])
+                print(f"_PRINT_PACKETS {_PRINT_PACKETS}")
+            else:
+                print("Unknown command!")
+        except Exception as e:
+            print(e.msg())
+            traceback.print_exc(file=sys.stdout)

@@ -46,7 +46,7 @@ class Level:
         if x < 0 or x >= self.width or \
            y < 0 or y >= self.height or \
            z < 0 or z >= self.depth:
-           return material_index["void"]
+           return 0
 
         return self.data[x+self.width*y + self.width*self.height*z]
 
