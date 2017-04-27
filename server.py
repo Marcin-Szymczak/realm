@@ -11,6 +11,7 @@ import sys
 import game
 import hooks
 import time
+import xml_logger
 
 from player import Player
 
@@ -177,7 +178,10 @@ class Server:
                     continue
 
                 while client.receive_available():
-                    client.handle_packet(client.receive())
+                    packet = client.receive()
+                    hooks.call("packet_arrived",client,packet)
+                    client.handle_packet(packet)
+                    hooks.call("packet_processed",client,packet)
             time.sleep(0.01)
             #game.update()
         account.save_accounts()
@@ -193,13 +197,21 @@ class Server:
 
 if __name__ == "__main__":
     hooks.register("client_connected",Client)
+    hooks.register("client_logged_in",Client)
     hooks.register("player_created",Client)
     hooks.register("client_disconnected",Client)
-    
-    globals.server = Server(ip="localhost",port=50000)
+    hooks.register("packet_arrived",Client,Packet)
+    hooks.register("packet_processed",Client,Packet)
+    hooks.register("packet_successful",Client,Packet)
+    hooks.register("packet_unsuccessful",Client,Packet)
+    hooks.register("packet_outgoing",Client,Packet)
+    hooks.register("game_initialized")
+
+    globals.server = Server(ip="42.0.156.3",port=50000)
     server = globals.server
     server.set_max_clients(4096)
     server.start()
+    xml_logger.init()
 
     while True:
         try:
@@ -222,8 +234,12 @@ if __name__ == "__main__":
             elif parts[0] == "debug_packets":
                 _PRINT_PACKETS = bool(parts[1])
                 print(f"_PRINT_PACKETS {_PRINT_PACKETS}")
+            elif parts[0] == "save":
+                xml_logger.save(command[len(parts[0])+1:])
             else:
                 print("Unknown command!")
         except Exception as e:
-            print(e.msg())
+            print(e)
             traceback.print_exc(file=sys.stdout)
+
+    xml_logger.save("history_on_quit.xml")

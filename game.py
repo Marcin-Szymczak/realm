@@ -14,7 +14,8 @@ def init():
     worlds["main"].generate("giant room") 
     hooks.hook("client_connected", client_connected)
     hooks.hook("player_created", player_connected)
-    
+    hooks.call("game_initialized")
+
 def update():
     pass
 
@@ -116,12 +117,14 @@ def resolve_attack(attacker, victim):
             "result":False,
             "description":"Too far away!",
         })
-        attacker.send(packet)
-        return
+        attacker.client.send(packet)
+        return False
 
     victim.health -= 1
     if victim.health <= 0:
         victim.spawn()
+        #victim.save_to_account(victim.client.account)
+
     packet = Packet("game",{
         "type":"result",
         "action":"attack",
@@ -131,9 +134,22 @@ def resolve_attack(attacker, victim):
     })
 
     attacker.client.send(packet)
+    packet = Packet("game",{
+        "type":"chat",
+        "channel":"game",
+        "message":f"You successfully attacked player {victim.client.account}",
+    })
+    attacker.client.send(packet)
+    packet = Packet("game",{
+        "type":"chat",
+        "channel":"game",
+        "message":f"You were attacked by player {attacker.client.account}",
+    })
+    victim.client.send(packet)
     for client in [attacker.client,victim.client]:
         client.send(packet_player_stats(attacker.client.id))
         client.send(packet_player_stats(victim.client.id))
+    return True
 
 
 def handle_packet(client, packet):
@@ -173,6 +189,8 @@ def handle_packet(client, packet):
         if map.get_tile(new_x,new_y,0) == 1:
             return
         globals.server.broadcast(packet_player_list())
+
+        hooks.call("packet_successful",client,packet)
     elif data["type"] == "stats_request":
         client.send(packet_player_stats(client.id))
     elif data["type"] == "attack":
@@ -189,5 +207,6 @@ def handle_packet(client, packet):
             })
             client.send(packet)
             return
-        resolve_attack(attacker,victim)
+        if resolve_attack(attacker,victim):
+            hooks.call("packet_successful",client,packet)
 

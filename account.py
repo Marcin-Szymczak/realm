@@ -50,6 +50,7 @@ def handle_packet(client,packet):
                 })
                 client.send(packet)
                 hooks.call("player_created",client)
+                hooks.call("client_logged_in",client)
                 return
             else:
                 packet = Packet("account",{
