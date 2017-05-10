@@ -22,7 +22,7 @@ class Player:
         self.level = 1
 
     def spawn(self):
-        map = game.worlds[self.world]
+        map = globals.worlds[self.world]
         while True:
             x = random.randint(0,map.width)
             y = random.randint(0,map.height)
