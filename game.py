@@ -6,12 +6,21 @@ from shared.network import Packet
 import random
 import math
 import account
-
-worlds = {}
+import globals
 
 def init():
-    worlds["main"] = world.Level(64,32,1)
-    worlds["main"].generate("giant room") 
+    globals.worlds = {}
+    globals.worlds["main"] = world.Level(64,32,1,
+        "an old, dark room."
+        "It looks like a hallway, having two doors leading "
+        "in opposite direction.")
+
+    globals.worlds["main"].generate("giant room")
+
+    globals.worlds["room"] = world.Level(24,24,1,
+        "a small room. A cellar of some sort.")
+    globals.worlds["room"].generate("giant room")
+
     hooks.hook("client_connected", client_connected)
     hooks.hook("player_created", player_connected)
     hooks.call("game_initialized")
@@ -38,10 +47,20 @@ def player_connected(client):
         pl.health_capacity = 10
         pl.spawn()
         pl.save_to_account(acc)
-
-    globals.server.broadcast( packet_player_list() )
+    
+    globals.server.broadcast(packet_player_list())
     client.send(packet_map_content(pl.world))
     client.send(packet_player_stats(client.id))
+    pl.send_world_description()
+
+def broadcast_game_chat(message):
+    packet = Packet("game",{
+        "type":"chat",
+        "channel":"game",
+        "message":message
+    })
+
+    globals.server.broadcast(packet)
 
 def packet_player_list():
     player_list = []
@@ -52,15 +71,17 @@ def packet_player_list():
             "x": client.player.x,
             "y": client.player.y,
             "id": client.id,
+            "world": client.player.world
         }
 
         player_list.append(pl)
 
-    packet = Packet("game",{
+    packet = Packet("game", {
         "type":"player_list",
         "players":player_list,
     })
     return packet
+
 
 def packet_player_stats(id):
     client = globals.server.clients[id]
@@ -80,7 +101,7 @@ def packet_player_stats(id):
     return packet
 
 def packet_map_content(world, x=0,y=0,w=-1,h=-1):
-    map = worlds[world]
+    map = globals.worlds[world]
     if w < 0:
         w = map.width+w+1
     if h < 0:
@@ -95,15 +116,16 @@ def packet_map_content(world, x=0,y=0,w=-1,h=-1):
         "slice_width":map.width,
         "slice_height":map.height,
         "data":map.data,
+        "name":world,
         "reset":True,
     })
     return packet
 
-def find_player_on_map(x,y):
+def find_player_on_map(world,x,y):
     for client in globals.server.clients:
         if not client: continue
         pl = client.player
-        if pl.x == x and pl.y == y:
+        if pl.world == world and pl.x == x and pl.y == y:
             return pl
     return None
 
@@ -181,7 +203,7 @@ def handle_packet(client, packet):
         y = pl.y
         new_x = data['x']
         new_y = data['y']
-        map = worlds[pl.world]
+        map = globals.worlds[pl.world]
         client.player.x = data["x"]
         client.player.y = data["y"]
         if abs(new_x - x) + abs(new_y - y) > 1:
@@ -195,7 +217,7 @@ def handle_packet(client, packet):
         client.send(packet_player_stats(client.id))
     elif data["type"] == "attack":
         attacker = client.player
-        victim = find_player_on_map(data["x"], data["y"])
+        victim = find_player_on_map(attacker.world, data["x"], data["y"])
         if not victim:
             packet = Packet("game", {
                 "type":"result",

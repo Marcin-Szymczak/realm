@@ -1,5 +1,7 @@
-import game
+import globals
 import random
+from shared import dice
+from shared.network import Packet
 
 class Player:
     def __init__(self, client):
@@ -28,6 +30,11 @@ class Player:
                 break
         self.x = x
         self.y = y
+        self.strength = dice.roll("2d4")
+        self.health_capacity = dice.roll("4d3") + int(self.strength/2)
+        self.dexterity = dice.roll("2d4")
+        self.wisdom = dice.roll("2d4")
+        self.mana_capacity = dice.roll("2d4") + self.wisdom
         self.health = self.health_capacity
 
     def load_from_account(self, account):
@@ -58,3 +65,11 @@ class Player:
         account["stats_experience"] = self.experience
         account["stats_level"] = self.level
         account["player"] = True
+
+    def send_world_description(self):
+        p = Packet("game",{
+            "type":"chat",
+            "channel":"game",
+            "message":f"You are in {globals.worlds[self.world].description}"
+        })
+        self.client.send(p)

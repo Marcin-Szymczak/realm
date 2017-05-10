@@ -207,7 +207,7 @@ if __name__ == "__main__":
     hooks.register("packet_outgoing",Client,Packet)
     hooks.register("game_initialized")
 
-    globals.server = Server(ip="42.0.156.3",port=50000)
+    globals.server = Server(ip=input("ip: "),port=int(input("port: ")))
     server = globals.server
     server.set_max_clients(4096)
     server.start()
@@ -229,13 +229,14 @@ if __name__ == "__main__":
             elif command == "register":
                 account.register(input("login: "), input("password: "))
             elif parts[0] == "delaccount":
-                #del account.accounts[parts[1]]
                 account.delete(parts[1])
             elif parts[0] == "debug_packets":
                 _PRINT_PACKETS = bool(parts[1])
                 print(f"_PRINT_PACKETS {_PRINT_PACKETS}")
             elif parts[0] == "save":
                 xml_logger.save(command[len(parts[0])+1:])
+            elif parts[0] == "@":
+                game.broadcast_game_chat(command[len(parts[0])+1:])
             else:
                 print("Unknown command!")
         except Exception as e:

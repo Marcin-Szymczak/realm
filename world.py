@@ -26,11 +26,12 @@ for index, mat in enumerate(material_index):
 print(material)
 
 class Level:
-    def __init__(self,width,height,depth):
+    def __init__(self,width,height,depth, description):
         self.width = width
         self.height = height
         self.depth = depth
         self.data = [0 for i in range(2*width*height)]
+        self.description = description
         
     def generate(self, world_type):
         if world_type == "giant room":

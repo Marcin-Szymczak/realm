@@ -131,7 +131,6 @@ def save_account(account):
 def save_accounts():
     for acc in accounts:
         save_account(acc)
-        print(f"Account {acc} saved")
 
 def load_account(account, clear=False):
     filename = f"{accounts_dir}/{account}.account"

@@ -17,7 +17,7 @@ def init():
     hooks.hook("game_initialized", save_worlds)
 
 def save_worlds():
-    for name, world in game.worlds.items():
+    for name, world in globals.worlds.items():
         worldel = etree.SubElement(worlds,"world")
 
         worldel.set("name",name)
