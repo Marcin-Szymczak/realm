@@ -97,14 +97,15 @@ Na, który to dostaniemy my jak i reszta graczy odpowiedź:
 "type":"chat",
 "channel":kanal,
 "message":wiadomosc,
-"player_id": id, # dla kanału global
+"player_id": id, # dla kanału global, local
 }
 ```
 + *kanal* Kanał, na który gracz wysłał wiadomość.
 Przewidziane kanały:
-++ global kanał czatu, w którym wszyscy gracze otrzymują od siebie nawzajem wiadomości
-++ system wiadomośći systemowe
-++ game wiadomości związane z grą
+++ global kanał czatu, w którym wszyscy gracze otrzymują od siebie nawzajem wiadomości.
+++ local kanał czatu obejmujący tylko aktualne pomieszczenie.
+++ system wiadomośći systemowe.
+++ game wiadomości związane z grą.
 + *wiadomosc* Treść wiadomości wysłanej przez gracza.
 + *id* Id gracza, który przesłał wiadomość (aby powiązać nick i id należy uprzednio odpytać server o listę graczy).
 
@@ -130,6 +131,7 @@ Na taki pakiet otrzymamy odpowiedź.
 "slice_width": sw,
 "slice_height": sh,
 "data": dane
+"name": nazwa
 }
 ```
 
@@ -143,7 +145,7 @@ wraz z otrzymaniem fragmentu mapy z flagą reset należy przyjrzeć się nowej 
 + *slice_width* szerokość otrzymanego prostokątnego wycinka planszy
 + *slice_height* wysokość otrzymanego prostokątnego wycinka planszy
 + *dane* to lista liczb o długości szerokosc\*wysokosc, aby dostać się do poszczególnej komórki o współrzędnych (x,y) można posłużyć się prostym wzorem: komórka = dane[x+y*szerokosc].
-
++ *name* nazwa planszy, należy wyświetlać tylko tych graczy, którzy są na tej samej planszy, co my.
 
 Server w przypadku zmian planszy samoczynnie wyśle nam nową wersje planszy.
 
@@ -176,12 +178,14 @@ player = {
   "y': y,
   "name": imie
   "id": id
+  "world": nazwa
 }
 ```
 + *x* Pozycja x'owa gracza (kolumna, w której się znajduje).
 + *y* Pozycja y'owa gracza (wiersz, w którym się znajduje).
 + *name* Imię gracza, narazie jest to jego login.
 + *id* To unikalny numer identyfikujący gracza.
++ *world* Nazwa planszy, w ktorej gracz sie znajduje
 
 ### Poruszanie się postacią
 ```python
